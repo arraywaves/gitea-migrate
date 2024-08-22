@@ -1,4 +1,4 @@
-# Gitea-Migrate
+# Gitea Migrate
 
 `Work in progress.`
 
