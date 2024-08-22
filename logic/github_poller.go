@@ -2,6 +2,7 @@ package logic
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -55,6 +56,32 @@ func (p *GithubPoller) Stop() {
 	close(p.stopChan)
 }
 
+func (p *GithubPoller) repoExistsInGitea(repoName string) bool {
+	giteaAPIURL := os.Getenv("GITEA_API_URL")
+	giteaUser := os.Getenv("GITEA_USER")
+	giteaToken := os.Getenv("GITEA_TOKEN")
+
+	url := fmt.Sprintf("%s/repos/%s/%s", giteaAPIURL, giteaUser, repoName)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("Error creating request to check repo in Gitea: %v", err)
+		return false
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", giteaToken))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error checking repo in Gitea: %v", err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode == http.StatusOK
+}
+
 func (p *GithubPoller) checkForNewRepos() {
 	log.Println("Checking for new repos...")
 
@@ -84,20 +111,24 @@ func (p *GithubPoller) checkForNewRepos() {
 	for _, repo := range repos {
 		p.mutex.Lock()
 		if !p.mirroredRepos[repo.Name] {
-			err := CreateGiteaMirror(repo.Name, repo.CloneURL)
-			if err != nil {
-				log.Printf("Error mirroring repo %s: %v", repo.Name, err)
-			} else {
+			if p.repoExistsInGitea(repo.Name) {
 				p.mirroredRepos[repo.Name] = true
-				p.saveMirroredRepos()
-				log.Printf("Successfully mirrored repo: %s", repo.Name)
+				log.Printf("Added existing Gitea mirror to list: %s", repo.Name)
+			} else {
+				err := CreateGiteaMirror(repo.Name, repo.CloneURL)
+				if err != nil {
+					log.Printf("Error mirroring repo %s: %v", repo.Name, err)
+				} else {
+					p.mirroredRepos[repo.Name] = true
+					log.Printf("Successfully mirrored repo: %s", repo.Name)
+				}
 			}
 		}
 		p.mutex.Unlock()
 	}
 
-	log.Printf("Finished checking. Total mirrored repos: %d", len(p.mirroredRepos))
 	p.saveMirroredRepos()
+	log.Printf("Finished checking. Total mirrored repos: %d", len(p.mirroredRepos))
 }
 
 func (p *GithubPoller) loadMirroredRepos() {
