@@ -33,7 +33,10 @@ func InitRouter() (router *http.ServeMux, err error) {
 
 	router = http.NewServeMux()
 
-	router.HandleFunc("/migrate-webhook", handleMigrateWebhook)
+	mode := os.Getenv("MIRROR_MODE")
+	if mode == "webhook" || mode == "both" || mode == "" {
+		router.HandleFunc("/migrate-webhook", handleMigrateWebhook)
+	}
 
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

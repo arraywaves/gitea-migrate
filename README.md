@@ -8,10 +8,11 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
 
 ## Features
 
-- Listens for GitHub webhook events
-- Automatically creates mirror repositories in Gitea
-- Supports private repositories
-- Mirrors wiki, labels, issues, pull requests, and releases
+- Scans for GitHub account for repositories.
+- Automatically creates mirror repositories in Gitea.
+- Supports private repositories.
+- Mirrors wiki, labels, issues, pull requests, and releases.
+- Option for a Github webhook endpoint. *in development*
 
 ## Prerequisites
 
@@ -39,9 +40,17 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
    GITEA_TOKEN=your-gitea-access-token
    GITHUB_USER=your-github-username
    GITHUB_TOKEN=your-github-personal-access-token
+   PORT=port-number // default 8080
+   POLLING_INTERVAL_MINUTES=time-in-minutes // default 60
+   MIRROR_MODE=mirror-mode // default poll (see options below)
    ```
 
    Replace the placeholder values with your actual credentials.
+
+   **Mirror Mode** has 3 options:
+   `MIRROR_MODE=poll`: Only use polling (default), set the `POLLING_INTERVAL_MINUTES` variable to change how often it checks your repositories.
+   `MIRROR_MODE=webhook`: Only use webhook (Github Organisations), exposes endpoint `/migrate-webhook` **Note: currently insecure**.
+   `MIRROR_MODE=both or unset`: Use both polling and webhook (future default).
 
 4. Build the application:
    ```bash
@@ -64,7 +73,9 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
 
 1. Host **gitea-migrate** on your server (preferably on the same domain as Gitea).
 
-2. When the endpoint is triggered, Gitea Migrate will automatically create a mirror repository in your Gitea instance.
+2. When the server starts, Gitea Migrate will automatically scan and migrate your repos to Gitea.
+
+*For Github organisations there is the endpoint `/migrate-webhook` which is enabled in webhook mode (see Environment Variables above). When triggered, Gitea Migrate will automatically create a mirror repository in your Gitea instance for any newly created repos.*
 
 3. You can test the webhook locally using the provided script:
    ```bash
@@ -88,6 +99,7 @@ gitea-migrate/
 │   ├── handlers.go
 │   └── router.go
 ├── logic/
+│   └── github_poller.go
 │   └── mirror.go
 ├── main.go
 ├── go.mod
@@ -97,14 +109,13 @@ gitea-migrate/
 
 ## Security Note
 
-**Important:** The current version of this project does not yet implement origin restriction for incoming webhook requests. This means that, in its current state, the endpoint could potentially process requests from unknown sources. A planned improvement is to add security measures to restrict and validate the origin of incoming webhook requests.
+**Important:** The current version of this project does not yet implement origin restriction for incoming webhook requests. This means that in its current state, the webhook endpoint could potentially process requests from unknown sources. A planned improvement is to add security measures to restrict and validate the origin of incoming webhook requests. For now please ensure `MIRROR_MODE` is set to `poll`.
 
 ## Future Improvements
 
-- Implement origin restriction for enhanced security
-- Add more comprehensive error handling and logging
+- Implement origin restriction for enhanced security (webhook mode)
+- Implement rate limiting to prevent abuse (webhook mode)
 - Expand test coverage
-- Implement rate limiting to prevent abuse
 
 ## License
 

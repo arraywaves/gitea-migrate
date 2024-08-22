@@ -18,6 +18,8 @@ type GithubWebhookPayload struct {
 	} `json:"repository"`
 }
 
+var Poller *logic.GithubPoller
+
 func handleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -53,6 +55,10 @@ func handleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error creating Gitea mirror: %v", err)
 		http.Error(w, fmt.Sprintf("Error creating Gitea mirror: %v", err), http.StatusInternalServerError)
 		return
+	}
+
+	if Poller != nil {
+		Poller.AddMirroredRepo(webhookPayload.Repository.Name)
 	}
 
 	w.WriteHeader(http.StatusOK)
