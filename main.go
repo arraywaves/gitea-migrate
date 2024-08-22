@@ -22,7 +22,7 @@ func main() {
 
 	mode := os.Getenv("MIRROR_MODE")
 	if mode == "" {
-		mode = "both"
+		mode = "poll"
 	}
 
 	var poller *logic.GithubPoller

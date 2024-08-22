@@ -1,17 +1,19 @@
 # Gitea Migrate
 
-Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks to automatically mirror repositories to a Gitea instance. This tool simplifies the process of keeping your Gitea repositories in sync with their GitHub counterparts.
-
-**Note: This project is currently a work in progress. While it should function as described, currently anyone could access your endpoint.**
+Gitea Migrate is a Go application that automatically mirrors GitHub repositories to a Gitea instance. It primarily uses a polling mechanism to periodically check for new GitHub repositories and mirror them to Gitea. The tool simplifies the process of keeping your Gitea repositories in sync with their GitHub counterparts.
+This tool is designed to work with personal GitHub accounts and provides a flexible solution for maintaining a Gitea mirror of your GitHub repositories.
 
 ## Features
 
-- Checks GitHub account for unmirrored repositories.
-- Automatically creates mirror repositories in Gitea from new Github repositories.
-- Keeps track of mirrored repositories in a new file `./mirrored_repos.json`.
-- Supports private repositories (via a Github Personal Access Token).
+- Polling mechanism: Regularly checks for new GitHub repositories and mirrors them to Gitea.
+- Configurable polling interval: Adjust the frequency of checks to suit your needs (note: Github has an API rate limit of 5000 requests per hour for Personal Access Tokens).
+- Tracks mirrored repositories: Maintains a list of already mirrored repositories to avoid duplication.
+- Recognizes pre-existing mirrors: Identifies and tracks repositories that were manually mirrored prior to using Gitea Migrate.
+- Supports public and private repositories.
 - Mirrors wiki, labels, issues, pull requests, and releases.
-- *In Development* Option for a Github webhook endpoint.
+
+## Future development
+- *In Development* Webhook support: An endpoint for GitHub webhooks is in development, which will allow for immediate mirroring when new repositories are created on GitHub Organisations.
 
 ## Prerequisites
 
@@ -32,24 +34,24 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
    go mod tidy
    ```
 
-3. Create a `.env` file in the root directory with the following content:
+3. Create an `.env` file in the root directory with the following content:
    ```env
    GITEA_API_URL=https://your-gitea-instance.com/api/v1
    GITEA_USER=your-gitea-username
    GITEA_TOKEN=your-gitea-access-token
    GITHUB_USER=your-github-username
    GITHUB_TOKEN=your-github-personal-access-token
-   PORT=port-number // default 8080
-   POLLING_INTERVAL_MINUTES=time-in-minutes // default 60
-   MIRROR_MODE=mirror-mode // default poll (see options below)
+   PORT=set-port-number // default 8080
+   POLLING_INTERVAL_MINUTES=set-time-in-minutes // default 60
+   MIRROR_MODE=set-mirror-mode-option // default poll (see options below)
    ```
 
    Replace the placeholder values with your actual credentials.
 
    **Mirror Mode** has 3 options:
-   `MIRROR_MODE=poll`: Only use polling (default), set the `POLLING_INTERVAL_MINUTES` variable to change how often it checks your repositories.
-   `MIRROR_MODE=webhook`: Only use webhook (Github Organisations), exposes endpoint `/migrate-webhook` **Note: currently insecure**.
-   `MIRROR_MODE=both or unset`: Use both polling and webhook (future default).
+   `MIRROR_MODE=poll (or unset)`: Only use polling (default), set the `POLLING_INTERVAL_MINUTES` variable to change how often it checks your repositories.
+   `MIRROR_MODE=webhook`: *In Development* Only use webhook (Github Organisations), exposes endpoint `/migrate-webhook` **Note: Currently insecure with no origin whitelist**.
+   `MIRROR_MODE=both`: Use both polling and webhook *(future default)*.
 
 4. Build the application:
    ```bash
@@ -74,7 +76,8 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
 
 2. When the server starts, Gitea Migrate will automatically scan and migrate your repos to Gitea.
 
-*For Github organisations there is the endpoint `/migrate-webhook` which is enabled in webhook mode (see Environment Variables above). When triggered, Gitea Migrate will automatically create a mirror repository in your Gitea instance for any newly created repos.*
+-- Webhooks --
+*For Github organisations there is the endpoint `/migrate-webhook` which is enabled in webhook mode (see Environment Variables above). When triggered, Gitea Migrate will automatically create a mirror repository in your Gitea instance from the request payload (`name`, `clone_url`).*
 
 3. You can test the webhook locally using the provided script:
    ```bash
@@ -88,7 +91,7 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
       }'
    ```
 
-   Make sure to modify the script with your repository details before running.
+   Make sure to set `MIRROR_MODE` to `webhook` or `both` and modify the script with your repository details before running.
 
 ## Project Structure
 
