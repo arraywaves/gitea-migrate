@@ -11,6 +11,7 @@ import (
 )
 
 type GithubWebhookPayload struct {
+	Action     string `json:"action"`
 	Repository struct {
 		Name     string `json:"name"`
 		CloneURL string `json:"clone_url"`
@@ -38,6 +39,12 @@ func handleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
 	if webhookPayload.Repository.Name == "" || webhookPayload.Repository.CloneURL == "" {
 		log.Printf("Error: Invalid repository name or clone URL")
 		http.Error(w, "Invalid repository name or clone URL", http.StatusBadRequest)
+		return
+	}
+
+	if webhookPayload.Action != "created" {
+		log.Printf("Ignoring non-creation event: %s", webhookPayload.Action)
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 

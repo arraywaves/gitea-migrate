@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -12,6 +13,13 @@ func loadEnv(envFile string) error {
 	err := godotenv.Load(envFile)
 	if err != nil {
 		return fmt.Errorf("Error loading .env file: %w", err)
+	}
+
+	requiredEnvVars := []string{"GITEA_API_URL", "GITEA_USER", "GITEA_TOKEN", "GITHUB_USER", "GITHUB_TOKEN"}
+	for _, envVar := range requiredEnvVars {
+		if value := os.Getenv(envVar); value == "" {
+			return fmt.Errorf("Required environment variable %s is not set", envVar)
+		}
 	}
 
 	return nil

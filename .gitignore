@@ -21,6 +21,10 @@ go.work.sum
 # env file
 .env
 
-# Scripts
-/scripts
-*.sh
+# Private
+scripts/api/private/
+*.pem
+ssl/
+
+# Build
+gitea-migrate

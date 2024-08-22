@@ -53,20 +53,18 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
    ./gitea-migrate
    ```
 
-   The server will start on port *8080* by default, you can change the port in main.go.
+   The server will start on port **8080** by default, you can change the port with the PORT environment variable.
+
+   *If you're using https locally set the PORT variable to 443 and change the method ListenAndServe() to ListenAndServeTLS("cert.pem", "key.pem") in **main.go**.*
+
+   *To generate a local SSL certificate interactively you can use **openssl** in your project directory:*
+   `openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem`
 
 ## Usage
 
 1. Host **gitea-migrate** on your server (preferably on the same domain as Gitea).
 
-2. Set up a GitHub webhook:
-   - Go to your GitHub repository or organization settings
-   - Navigate to Webhooks > Add webhook
-   - Set the Payload URL to `http://your-server-address:8080/migrate-webhook`
-   - Choose content type: `application/json`
-   - Select events you want to trigger the webhook (at least "Push" event)
-
-2. When the webhook is triggered, Gitea-Migrate will automatically create a mirror repository in your Gitea instance.
+2. When the endpoint is triggered, Gitea Migrate will automatically create a mirror repository in your Gitea instance.
 
 3. You can test the webhook locally using the provided script:
    ```bash
