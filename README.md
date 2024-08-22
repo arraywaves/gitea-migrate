@@ -108,10 +108,6 @@ gitea-migrate/
 - Expand test coverage
 - Implement rate limiting to prevent abuse
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
 This project is licensed under the MIT License.
