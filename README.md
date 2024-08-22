@@ -8,11 +8,12 @@ Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks t
 
 ## Features
 
-- Scans for GitHub account for repositories.
-- Automatically creates mirror repositories in Gitea.
-- Supports private repositories.
+- Checks GitHub account for unmirrored repositories.
+- Automatically creates mirror repositories in Gitea from new Github repositories.
+- Keeps track of mirrored repositories in a new file `./mirrored_repos.json`.
+- Supports private repositories (via a Github Personal Access Token).
 - Mirrors wiki, labels, issues, pull requests, and releases.
-- Option for a Github webhook endpoint. *in development*
+- *In Development* Option for a Github webhook endpoint.
 
 ## Prerequisites
 
@@ -101,6 +102,8 @@ gitea-migrate/
 ├── logic/
 │   └── github_poller.go
 │   └── mirror.go
+├── scripts/api/
+│   └── test-migrate-endpoint.sh
 ├── main.go
 ├── go.mod
 ├── go.sum
