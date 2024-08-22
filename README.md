@@ -1,7 +1,5 @@
 # Gitea Migrate
 
-`Work in progress.`
-
 Gitea-Migrate is a Go application that creates an endpoint for GitHub webhooks to automatically mirror repositories to a Gitea instance. This tool simplifies the process of keeping your Gitea repositories in sync with their GitHub counterparts.
 
 **Note: This project is currently a work in progress. While it should function as described, currently anyone could access your endpoint.**
