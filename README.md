@@ -1,7 +1,6 @@
 # Gitea Migrate
 
-The problem: Gitea only allows single repos to be migrated at a time.
-The solution: Gitea Migrate is a simple Go server application that automatically mirrors GitHub repositories to a Gitea instance by periodically checking for new GitHub repositories and migrating them to Gitea, you could run this just once from your local environment if you don't need to check periodically for new Github repositories. This tool simplifies the process of keeping your Gitea repositories in sync with their GitHub counterparts and is designed to work with personal GitHub accounts, providing a flexible solution for maintaining a Gitea backup of your GitHub repositories. A webhook endpoint is in development for Github organisations.
+Gitea Migrate is a simple Go server application that automatically mirrors GitHub repositories to a Gitea instance by periodically checking for new GitHub repositories and migrating them to Gitea, you could run this just once from your local environment if you don't need to check periodically for new Github repositories. This tool simplifies the process of keeping your Gitea repositories in sync with their GitHub counterparts and is designed to work with personal GitHub accounts, providing a flexible solution for maintaining a Gitea backup of your GitHub repositories. A webhook endpoint is in development for Github organisations.
 
 ## Features
 
