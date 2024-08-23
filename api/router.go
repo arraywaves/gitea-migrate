@@ -36,15 +36,15 @@ func InitRouter() (router *http.ServeMux, err error) {
 	mode := os.Getenv("MIGRATE_MODE")
 	if mode == "webhook" || mode == "both" {
 		router.HandleFunc("/migrate-webhook", handleMigrateWebhook)
-	}
 
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, err := fmt.Fprint(w, "OK")
-		if err != nil {
-			log.Printf("Error writing response: %v", err)
-		}
-	})
+		router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, err := fmt.Fprint(w, "OK")
+			if err != nil {
+				log.Printf("Error writing response: %v", err)
+			}
+		})
+	}
 
 	return router, nil
 }
