@@ -105,13 +105,15 @@ gitea-migrate/
 │   └── router.go
 ├── logic/
 │   └── github_poller.go
-│   └── mirror.go
+│   └── migrate.go
 ├── scripts/api/
 │   └── test-migrate-endpoint.sh
-├── main.go
+├── .env
 ├── go.mod
 ├── go.sum
-└── .env
+├── LICENSE
+├── main.go
+└── README.md
 ```
 
 ## Security Note

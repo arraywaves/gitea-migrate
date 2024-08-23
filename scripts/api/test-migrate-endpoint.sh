@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -X POST http://localhost:443/migrate-webhook \
+curl -X POST http://localhost:8080/migrate-webhook \
   -H "Content-Type: application/json" \
   -d '{
     "repository": {
