@@ -50,7 +50,7 @@ func handleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = logic.CreateGiteaMirror(webhookPayload.Repository.Name, webhookPayload.Repository.CloneURL)
+	err = logic.CreateGiteaRepo(webhookPayload.Repository.Name, webhookPayload.Repository.CloneURL)
 	if err != nil {
 		log.Printf("Error creating Gitea mirror: %v", err)
 		http.Error(w, fmt.Sprintf("Error creating Gitea mirror: %v", err), http.StatusInternalServerError)

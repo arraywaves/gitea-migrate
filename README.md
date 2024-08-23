@@ -122,9 +122,11 @@ gitea-migrate/
 
 ## Future Improvements
 
+- Enable more migration options
+- Implement test coverage
 - Implement origin restriction for enhanced security (webhook mode)
 - Implement rate limiting to prevent abuse (webhook mode)
-- Expand test coverage
+- Expand to other repositories
 
 ## License
 

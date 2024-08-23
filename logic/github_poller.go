@@ -115,7 +115,7 @@ func (p *GithubPoller) checkForNewRepos() {
 				p.mirroredRepos[repo.Name] = true
 				log.Printf("Added existing Gitea mirror to list: %s", repo.Name)
 			} else {
-				err := CreateGiteaMirror(repo.Name, repo.CloneURL)
+				err := CreateGiteaRepo(repo.Name, repo.CloneURL)
 				if err != nil {
 					log.Printf("Error mirroring repo %s: %v", repo.Name, err)
 				} else {

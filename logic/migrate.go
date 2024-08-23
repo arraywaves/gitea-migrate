@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-func CreateGiteaMirror(repoName, cloneURL string) error {
+func CreateGiteaRepo(repoName, cloneURL string) error {
 	giteaAPIURL := os.Getenv("GITEA_API_URL")
 	giteaUser := os.Getenv("GITEA_USER")
 	giteaToken := os.Getenv("GITEA_TOKEN")
