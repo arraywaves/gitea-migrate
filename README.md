@@ -1,7 +1,6 @@
 # Gitea Migrate
 
-Gitea Migrate is a Go application that automatically mirrors GitHub repositories to a Gitea instance. It primarily uses a polling mechanism to periodically check for new GitHub repositories and mirror them to Gitea. The tool simplifies the process of keeping your Gitea repositories in sync with their GitHub counterparts.
-This tool is designed to work with personal GitHub accounts and provides a flexible solution for maintaining a Gitea mirror of your GitHub repositories.
+Gitea Migrate is a Go application that automatically mirrors GitHub repositories to a Gitea instance. It primarily uses a polling mechanism to periodically check for new GitHub repositories and mirror them to Gitea, you could run this just once from your local environment if you don't need to check periodically for new Github repositories. This tool simplifies the process of keeping your Gitea repositories in sync with their GitHub counterparts and is designed to work with personal GitHub accounts, providing a flexible solution for maintaining a Gitea mirror of your GitHub repositories. A webhook endpoint is in development for Github organisations.
 
 ## Features
 
@@ -13,6 +12,7 @@ This tool is designed to work with personal GitHub accounts and provides a flexi
 - Mirrors wiki, labels, issues, pull requests, and releases.
 
 ## Future development
+
 - *In Development* Webhook support: An endpoint for GitHub webhooks is in development, which will allow for immediate mirroring when new repositories are created on GitHub Organisations.
 
 ## Prerequisites
@@ -43,15 +43,17 @@ This tool is designed to work with personal GitHub accounts and provides a flexi
    GITHUB_TOKEN=your-github-personal-access-token
    PORT=set-port-number // default 8080
    POLLING_INTERVAL_MINUTES=set-time-in-minutes // default 60
-   MIRROR_MODE=set-mirror-mode-option // default poll (see options below)
+   MIGRATE_MODE=set-mirror-mode-option // default poll (see options below)
+   ENABLE_MIRROR=set-mirror-mode // default true (if set to false, your new repo won't sync with its Github counterpart. To enable mirror mode later you'll need to delete your Gitea repo and re-run Gitea Migrate with `ENABLE_MIRROR` set to true).
    ```
 
    Replace the placeholder values with your actual credentials.
 
-   **Mirror Mode** has 3 options:
-   `MIRROR_MODE=poll (or unset)`: Only use polling (default), set the `POLLING_INTERVAL_MINUTES` variable to change how often it checks your repositories.
-   `MIRROR_MODE=webhook`: *In Development* Only use webhook (Github Organisations), exposes endpoint `/migrate-webhook` **Note: Currently insecure with no origin whitelist**.
-   `MIRROR_MODE=both`: Use both polling and webhook *(future default)*.
+   ### **Mirror Mode** has 3 options:
+
+   - `MIGRATE_MODE=poll (or unset)`: Only use polling (default), set the `POLLING_INTERVAL_MINUTES` variable to change how often it checks your repositories.
+   - `MIGRATE_MODE=webhook`: *In Development* Only use webhook (Github Organisations), exposes endpoint `/migrate-webhook` **Note: Currently insecure with no origin whitelist**.
+   - `MIGRATE_MODE=both`: Use both polling and webhook *(future default)*.
 
 4. Build the application:
    ```bash
@@ -91,7 +93,7 @@ This tool is designed to work with personal GitHub accounts and provides a flexi
       }'
    ```
 
-   Make sure to set `MIRROR_MODE` to `webhook` or `both` and modify the script with your repository details before running.
+   Make sure to set `MIGRATE_MODE` to `webhook` or `both` and modify the script with your repository details before running.
 
 ## Project Structure
 
@@ -113,7 +115,7 @@ gitea-migrate/
 
 ## Security Note
 
-**Important:** The current version of this project does not yet implement origin restriction for incoming webhook requests. This means that in its current state, the webhook endpoint could potentially process requests from unknown sources. A planned improvement is to add security measures to restrict and validate the origin of incoming webhook requests. For now please ensure `MIRROR_MODE` is set to `poll`.
+**Important:** The current version of this project does not yet implement origin restriction for incoming webhook requests. This means that in its current state, the webhook endpoint could potentially process requests from unknown sources. A planned improvement is to add security measures to restrict and validate the origin of incoming webhook requests. For now please ensure `MIGRATE_MODE` is set to `poll`.
 
 ## Future Improvements
 

@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("Error initialising router: %v", err)
 	}
 
-	mode := os.Getenv("MIRROR_MODE")
+	mode := os.Getenv("MIGRATE_MODE")
 	if mode == "" {
 		mode = "poll"
 	}

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func CreateGiteaMirror(repoName, cloneURL string) error {
@@ -17,11 +18,22 @@ func CreateGiteaMirror(repoName, cloneURL string) error {
 	githubUser := os.Getenv("GITHUB_USER")
 	githubToken := os.Getenv("GITHUB_TOKEN")
 
+	enableMirrorStr := os.Getenv("ENABLE_MIRROR")
+	if enableMirrorStr == "" {
+		enableMirrorStr = "true"
+	}
+
+	enableMirror, err := strconv.ParseBool(enableMirrorStr)
+	if err != nil {
+		return fmt.Errorf("Error parsing ENABLE_MIRROR: %v", err)
+	}
+
 	log.Printf("Debug - Creating mirror for repo: %s, clone URL: %s", repoName, cloneURL)
 
 	log.Printf("Debug - GITEA_API_URL: %s", giteaAPIURL)
 	log.Printf("Debug - GITEA_USER: %s", giteaUser)
 	log.Printf("Debug - GITHUB_USER: %s", githubUser)
+	log.Printf("Debug - ENABLE_MIRROR: %v", enableMirror)
 
 	if giteaAPIURL == "" || giteaToken == "" || giteaUser == "" || githubUser == "" || githubToken == "" {
 		return fmt.Errorf("Missing required environment variables")
@@ -59,7 +71,7 @@ func CreateGiteaMirror(repoName, cloneURL string) error {
 	payload := map[string]interface{}{
 		"repo_name":     repoName,
 		"clone_addr":    cloneURL,
-		"mirror":        true,
+		"mirror":        enableMirror,
 		"private":       true,
 		"auth_username": githubUser,
 		"auth_password": githubToken,
