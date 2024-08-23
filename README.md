@@ -4,12 +4,13 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
 
 ## Features
 
-- Polling mechanism: Regularly checks for new GitHub repositories and mirrors them to Gitea.
-- Configurable polling interval: Adjust the frequency of checks to suit your needs (note: Github has an API rate limit of 5000 requests per hour for Personal Access Tokens).
-- Tracks mirrored repositories: Maintains a list of already mirrored repositories to avoid duplication.
-- Recognizes pre-existing mirrors: Identifies and tracks repositories that were manually mirrored prior to using Gitea Migrate.
+- Regularly checks for new GitHub repositories and mirrors them to Gitea.
+- Adjust the frequency of checks to suit your needs (note: Github has an API rate limit of 5000 requests per hour for Personal Access Tokens).
+- Maintains a list of already mirrored repositories to avoid duplication.
+- Non-destructive: if a repository with the same name already exists on Gitea it won't be overwritten.
 - Supports public and private repositories.
 - Mirrors wiki, labels, issues, pull requests, and releases.
+- Enables Gitea mirroring by default (periodically sync from Github to Gitea), this can be turned off.
 
 ## Future development
 
@@ -47,7 +48,7 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
    ENABLE_MIRROR=set-mirror-mode // default true (if set to false, your new repo won't sync with its Github counterpart. To enable mirror mode later you'll need to delete your Gitea repo and re-run Gitea Migrate with `ENABLE_MIRROR` set to true).
    ```
 
-   Replace the placeholder values with your actual credentials.
+   Replace the placeholder values with your actual credentials - restart the server if it's already running to use any updated settings.
 
    ### **Mirror Mode** has 3 options:
 
@@ -125,4 +126,4 @@ gitea-migrate/
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](https://github.com/arraywaves/gitea-migrate?tab=MIT-1-ov-file).
