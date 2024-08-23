@@ -28,13 +28,6 @@ func CreateGiteaMirror(repoName, cloneURL string) error {
 		return fmt.Errorf("Error parsing ENABLE_MIRROR: %v", err)
 	}
 
-	log.Printf("Debug - Creating mirror for repo: %s, clone URL: %s", repoName, cloneURL)
-
-	log.Printf("Debug - GITEA_API_URL: %s", giteaAPIURL)
-	log.Printf("Debug - GITEA_USER: %s", giteaUser)
-	log.Printf("Debug - GITHUB_USER: %s", githubUser)
-	log.Printf("Debug - ENABLE_MIRROR: %v", enableMirror)
-
 	if giteaAPIURL == "" || giteaToken == "" || giteaUser == "" || githubUser == "" || githubToken == "" {
 		return fmt.Errorf("Missing required environment variables")
 	}
@@ -43,27 +36,27 @@ func CreateGiteaMirror(repoName, cloneURL string) error {
 	userURL := fmt.Sprintf("%s/user", giteaAPIURL)
 	req, err := http.NewRequest("GET", userURL, nil)
 	if err != nil {
-		return fmt.Errorf("error creating user request: %v", err)
+		return fmt.Errorf("Error creating user request: %v", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("token %s", giteaToken))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("error sending user request: %v", err)
+		return fmt.Errorf("Error sending user request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("unexpected status code for user request: %d, body: %s", resp.StatusCode, string(body))
+		return fmt.Errorf("Unexpected status code for user request: %d, body: %s", resp.StatusCode, string(body))
 	}
 
 	var userData struct {
 		ID int64 `json:"id"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&userData); err != nil {
-		return fmt.Errorf("error decoding user response: %v", err)
+		return fmt.Errorf("Error decoding user response: %v", err)
 	}
 
 	// Now create the repository
@@ -90,8 +83,6 @@ func CreateGiteaMirror(repoName, cloneURL string) error {
 		return fmt.Errorf("Error marshaling JSON: %v", err)
 	}
 
-	log.Printf("Debug - Request payload: %s", string(jsonPayload))
-
 	req, err = http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return fmt.Errorf("Error creating request: %v", err)
@@ -107,8 +98,6 @@ func CreateGiteaMirror(repoName, cloneURL string) error {
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-	log.Printf("Debug - Response status: %d", resp.StatusCode)
-	log.Printf("Debug - Response body: %s", string(body))
 
 	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("Unexpected status code: %d, body: %s", resp.StatusCode, string(body))

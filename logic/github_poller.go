@@ -144,8 +144,7 @@ func (p *GithubPoller) loadMirroredRepos() {
 	err = json.Unmarshal(file, &p.mirroredRepos)
 	if err != nil {
 		log.Printf("Error parsing mirrored repos file: %v", err)
-		// If we can't parse the file, start with an empty map
-		p.mirroredRepos = make(map[string]bool)
+		p.mirroredRepos = make(map[string]bool) // No log file ? create empty map.
 	}
 	log.Printf("Loaded %d mirrored repos from file", len(p.mirroredRepos))
 }
