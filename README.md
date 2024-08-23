@@ -126,4 +126,4 @@ gitea-migrate/
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/arraywaves/gitea-migrate?tab=MIT-1-ov-file).
+This project is licensed under the [MIT License](?tab=MIT-1-ov-file).
