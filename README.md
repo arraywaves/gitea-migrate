@@ -126,4 +126,4 @@ gitea-migrate/
 
 ## License
 
-This project is licensed under the [MIT License](/gitea-migrate?tab=MIT-1-ov-file).
+This project is licensed under the [MIT License](gitea-migrate?tab=MIT-1-ov-file).
