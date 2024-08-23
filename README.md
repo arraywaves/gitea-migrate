@@ -42,10 +42,10 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
    GITEA_TOKEN=your-gitea-access-token
    GITHUB_USER=your-github-username
    GITHUB_TOKEN=your-github-personal-access-token
-   PORT=set-port-number // default 8080
-   POLLING_INTERVAL_MINUTES=set-time-in-minutes // default 60
-   MIGRATE_MODE=set-mirror-mode-option // default poll (see options below)
-   ENABLE_MIRROR=set-mirror-mode // default true (if set to false, your new repo won't sync with its Github counterpart. To enable mirror mode later you'll need to delete your Gitea repo and re-run Gitea Migrate with `ENABLE_MIRROR` set to true).
+   PORT=set-port-number # default 8080
+   POLLING_INTERVAL_MINUTES=set-time-in-minutes # default 60
+   MIGRATE_MODE=set-mirror-mode-option # default poll (see options below)
+   ENABLE_MIRROR=set-mirror-mode # default true (if set to false, your new repo won't sync with its Github counterpart. To enable mirror mode later you'll need to delete your Gitea repo and re-run Gitea Migrate with `ENABLE_MIRROR` set to true).
    ```
 
    Replace the placeholder values with your actual credentials - restart the server if it's already running to use any updated settings.
