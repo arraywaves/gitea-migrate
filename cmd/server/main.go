@@ -25,7 +25,6 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	// Create an error channel to capture server errors
 	serverErrors := make(chan error, 1)
 
 	go func() {
@@ -43,7 +42,6 @@ func main() {
 		log.Printf("Server error: %v", err)
 	}
 
-	// Perform any cleanup or shutdown operations here
 	if err := router.Stop(); err != nil {
 		log.Printf("Error stopping server: %v", err)
 	}

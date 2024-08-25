@@ -63,7 +63,9 @@ func (p *ServicePoller) Stop() {
 func (p *ServicePoller) checkForNewRepos() {
 	log.Println("Checking for new repos...")
 
-	context := context.Background()
+	context, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	repos, err := p.githubService.FetchRepos(context)
 	if err != nil {
 		log.Printf("Error fetching repos: %v", err)

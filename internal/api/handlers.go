@@ -14,10 +14,7 @@ import (
 
 type GithubWebhookPayload struct {
 	Action     string `json:"action"`
-	Repository struct {
-		Name     string `json:"name"`
-		CloneURL string `json:"clone_url"`
-	} `json:"repository"`
+	Repository models.Repository
 }
 
 type Handler struct {

@@ -14,6 +14,7 @@ type Config struct {
 	GiteaToken      string
 	GithubUser      string
 	GithubToken     string
+	GithubRateLimit int
 	Port            int
 	PollingInterval int
 	MigrateMode     string
@@ -31,6 +32,7 @@ func LoadConfig() (*Config, error) {
 	config.GithubUser = getEnv("GITHUB_USER", "")
 	config.GithubToken = getEnv("GITHUB_TOKEN", "")
 
+	config.GithubRateLimit = getEnvAsInt("GH_RATE_LIMIT", 4990)
 	config.Port = getEnvAsInt("PORT", 8080)
 	config.PollingInterval = getEnvAsInt("POLLING_INTERVAL_MINUTES", 60)
 	config.MigrateMode = getEnv("MIGRATE_MODE", "poll")
@@ -81,6 +83,9 @@ func (c *Config) validate() error {
 	}
 	if c.GithubToken == "" {
 		return fmt.Errorf("GITHUB_TOKEN is required")
+	}
+	if c.GithubRateLimit <= 0 {
+		return fmt.Errorf("GH_RATE_LIMIT must be greater than 0")
 	}
 	return nil
 }

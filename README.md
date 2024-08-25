@@ -5,7 +5,7 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
 ## Features
 
 - Regularly checks for new GitHub repositories and mirrors them to Gitea.
-- Adjust the frequency of checks to suit your needs (note: Github has an API rate limit of 5000 requests per hour for Personal Access Tokens).
+- Adjust the frequency of checks to suit your needs (note: Github has an API rate limit of 5,000 requests per hour for Personal Access Tokens - this service makes 1 request check).
 - Maintains a list of already mirrored repositories to avoid duplication.
 - Non-destructive: if a repository with the same name already exists on Gitea it won't be overwritten.
 - Supports public and private repositories.
@@ -42,10 +42,11 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
    GITEA_TOKEN=your-gitea-access-token
    GITHUB_USER=your-github-username
    GITHUB_TOKEN=your-github-personal-access-token
+   GH_RATE_LIMIT=set-rate-limit # default 4990 (this is highly unlikely to be reached and is just a precaution)
    PORT=set-port-number # default 8080
    POLLING_INTERVAL_MINUTES=set-time-in-minutes # default 60
    MIGRATE_MODE=set-mirror-mode-option # default poll (see options below)
-   ENABLE_MIRROR=set-mirror-mode # default true (if set to false, your new repo won't sync with its Github counterpart. To enable mirror mode later you'll need to delete your Gitea repo and re-run Gitea Migrate with `ENABLE_MIRROR` set to true).
+   ENABLE_MIRROR=set-mirror-mode # default true (if set to false, your new repo won't sync with its Github counterpart. To enable mirror mode later you'll need to delete your Gitea repo and re-run Gitea Migrate with `ENABLE_MIRROR` set to true)
    ```
 
    Replace the placeholder values with your actual credentials - restart the server if it's already running to use any updated settings.
@@ -81,7 +82,7 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
 
 2. When the server starts, Gitea Migrate will automatically scan and migrate your repos to Gitea.
 
--- Webhooks --
+-- **Webhooks** --
 *For Github organisations there is the endpoint `/migrate-webhook` which is enabled in webhook mode (see Environment Variables above). When triggered, Gitea Migrate will automatically create a mirror repository in your Gitea instance from the request payload (`name`, `clone_url`).*
 
 3. You can test the webhook locally using the provided script:
@@ -97,6 +98,10 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
    ```
 
    Make sure to set `MIGRATE_MODE` to `webhook` or `both` and modify the script with your repository details before running.
+
+   -- **Health Check** --
+   Health checks can be made at the `/health` endpoint when the server is runnning.
+   `curl -v https://your-domain.com/health`
 
 ## Project Structure
 
@@ -115,7 +120,8 @@ gitea-migrate/
 │   │   ├── giteaservice.go
 │   │   ├── githubservice.go
 │   │   ├── interfaces.go
-│   │   └── poller.go
+│   │   ├── poller.go
+│   │   └── ratelimiter.go
 ├── pkg/
 │   ├── models/
 │   │   └── repository.go
@@ -136,11 +142,11 @@ gitea-migrate/
 
 ## Future Improvements
 
-- Enable more migration options
-- Implement test coverage
-- Implement origin restriction for enhanced security (webhook mode)
-- Implement rate limiting to prevent abuse (webhook mode)
-- Expand to other repositories
+- Handle pagination for larger Github accounts (which will increase Github requests by 1 per 100 repositories).
+- Implement test coverage.
+- Enable more migration options.
+- Implement origin restriction (CSRF) for security in webhook mode.
+- Expand to other repositories.
 
 ## License
 
