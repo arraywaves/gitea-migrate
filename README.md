@@ -58,7 +58,7 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
 
 4. Build the application:
    ```bash
-   go build -o gitea-migrate
+   go build -o gitea-migrate ./cmd/server
    ```
 
 5. Run the application:
@@ -72,6 +72,8 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
 
    *To generate a local SSL certificate interactively you can use **openssl** in your project directory:*
    `openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout key.pem -out cert.pem`
+
+   The included Dockerfile should help you get up and running with Docker.
 
 ## Usage
 
@@ -100,15 +102,26 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
 
 ```
 gitea-migrate/
-├── api/
-│   ├── handlers.go
-│   └── router.go
-├── logic/
-│   └── github_poller.go
-│   └── migrate.go
+├── cmd/
+│   ├── server/
+│   │   └── main.go
+├── internal/
+│   ├── api/
+│   │   ├── handlers.go
+│   │   └── router.go
+│   ├── config/
+│   │   └── config.go
+│   ├── core/
+│   │   ├── gitea_service.go
+│   │   ├── github_poller.go
+│   │   └── interfaces.go
+├── pkg/
+│   ├── models/
+│   │   └── repository.go
 ├── scripts/api/
 │   └── test-migrate-endpoint.sh
 ├── .env
+├── Dockerfile
 ├── go.mod
 ├── go.sum
 ├── LICENSE

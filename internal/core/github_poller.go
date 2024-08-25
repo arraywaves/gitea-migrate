@@ -11,12 +11,8 @@ import (
 	"time"
 
 	"gitea-migrate/internal/config"
+	"gitea-migrate/pkg/models"
 )
-
-type GithubRepo struct {
-	Name     string `json:"name"`
-	CloneURL string `json:"clone_url"`
-}
 
 type GithubPoller struct {
 	mirroredRepos map[string]bool
@@ -61,7 +57,7 @@ func (p *GithubPoller) Stop() {
 	<-p.doneChan
 }
 
-func (p *GithubPoller) repoExistsInGitea(repoName string) bool {
+func (p *GithubPoller) repoExists(repoName string) bool {
 	GiteaURL := fmt.Sprintf("%s/repos/%s/%s", p.config.GiteaAPIURL, p.config.GiteaUser, repoName)
 
 	req, err := http.NewRequest("GET", GiteaURL, nil)
@@ -101,18 +97,18 @@ func (p *GithubPoller) checkForNewRepos() {
 
 	body, _ := io.ReadAll(resp.Body)
 
-	var repos []GithubRepo
+	var repos []models.Repository
 	json.Unmarshal(body, &repos)
 
 	// Improve: solution to nesting?
 	for _, repo := range repos {
 		p.mutex.Lock()
 		if !p.mirroredRepos[repo.Name] {
-			if p.repoExistsInGitea(repo.Name) {
+			if p.repoExists(repo.Name) {
 				p.mirroredRepos[repo.Name] = true
 				log.Printf("Added existing Gitea mirror to list: %s", repo.Name)
 			} else {
-				err := CreateGiteaRepo(repo.Name, repo.CloneURL, p.config)
+				err := CreateRepo(repo.Name, repo.CloneURL, p.config)
 				if err != nil {
 					log.Printf("Error mirroring repo %s: %v", repo.Name, err)
 				} else {

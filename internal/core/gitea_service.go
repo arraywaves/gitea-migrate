@@ -11,7 +11,7 @@ import (
 	"gitea-migrate/internal/config"
 )
 
-func CreateGiteaRepo(repoName, cloneURL string, config *config.Config) error {
+func CreateRepo(repoName, cloneURL string, config *config.Config) error {
 	userURL := fmt.Sprintf("%s/user", config.GiteaAPIURL)
 	req, err := http.NewRequest("GET", userURL, nil)
 	if err != nil {
