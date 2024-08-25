@@ -112,9 +112,10 @@ gitea-migrate/
 │   ├── config/
 │   │   └── config.go
 │   ├── core/
-│   │   ├── gitea_service.go
-│   │   ├── github_poller.go
-│   │   └── interfaces.go
+│   │   ├── giteaservice.go
+│   │   ├── githubservice.go
+│   │   ├── interfaces.go
+│   │   └── poller.go
 ├── pkg/
 │   ├── models/
 │   │   └── repository.go
