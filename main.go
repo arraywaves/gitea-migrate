@@ -2,91 +2,74 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
 	"gitea-migrate/api"
+	"gitea-migrate/config"
 	"gitea-migrate/logic"
 )
 
 func main() {
-	router, err := api.InitRouter()
+	config, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Error loading configuration: %v", err)
+		return
+	}
+
+	router, err := api.InitRouter(config)
 	if err != nil {
 		log.Fatalf("Error initialising router: %v", err)
 	}
 
-	mode := os.Getenv("MIGRATE_MODE")
-	if mode == "" {
-		mode = "poll"
-	}
-
-	var poller *logic.GithubPoller
-	if mode == "poll" || mode == "both" {
-		intervalMinutes := 60
-		if envInterval := os.Getenv("POLLING_INTERVAL_MINUTES"); envInterval != "" {
-			if i, err := strconv.Atoi(envInterval); err == nil {
-				intervalMinutes = i
-			} else {
-				log.Printf("Invalid POLLING_INTERVAL_MINUTES, using default: %v", err)
-			}
-		}
-
-		pollingInterval := time.Duration(intervalMinutes) * time.Minute
-		log.Printf("Setting polling interval to %v", pollingInterval)
-
-		poller = logic.NewGithubPoller(pollingInterval)
-		log.Printf("Initial mirrored repos count: %d", poller.GetMirroredReposCount())
-		poller.Start()
-		defer poller.Stop()
-	}
-
-	if mode == "webhook" || mode == "both" {
+	if config.MigrateMode == "webhook" || config.MigrateMode == "both" {
 		log.Println("Webhook endpoint active at /migrate-webhook")
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	var poller *logic.GithubPoller
+	if config.MigrateMode == "poll" || config.MigrateMode == "both" {
+		pollingInterval := time.Duration(config.PollingInterval) * time.Minute
+		poller = logic.NewGithubPoller(pollingInterval, config)
+		log.Printf("Initial mirrored repos count: %d", poller.GetMirroredReposCount())
+		poller.Start()
 	}
 
 	server := &http.Server{
-		Addr:    ":" + port,
+		Addr:    fmt.Sprintf(":%d", config.Port),
 		Handler: router,
 	}
 
-	log.Printf("Starting server on :%s", port)
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Server error: %v", err)
-	}
-
 	go func() {
-		log.Println("Starting server on :8080")
+		log.Printf("Starting server on :%d", config.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()
 
 	<-waitForInterrupt()
+	log.Println("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	context, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	if err := server.Shutdown(ctx); err != nil {
+
+	if err := server.Shutdown(context); err != nil {
 		log.Printf("Server forced to shutdown: %v", err)
 	}
 
 	if poller != nil {
 		poller.Stop()
 	}
-	log.Println("Server stopped")
+
+	log.Println("Server stopped.")
 }
 
 func waitForInterrupt() chan os.Signal {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	return c
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+	return exit
 }

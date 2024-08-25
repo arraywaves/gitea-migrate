@@ -5,6 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"gitea-migrate/config"
+	"gitea-migrate/logic"
 
 	"github.com/joho/godotenv"
 )
@@ -25,7 +29,24 @@ func loadEnv(envFile string) error {
 	return nil
 }
 
-func InitRouter() (router *http.ServeMux, err error) {
+type WebhookHandler struct {
+	config *config.Config
+	poller *logic.GithubPoller
+}
+
+func NewWebhookHandler(config *config.Config) *WebhookHandler {
+	interval := config.PollingInterval
+	return &WebhookHandler{
+		config: config,
+		poller: logic.NewGithubPoller(time.Duration(interval), config),
+	}
+}
+
+func (h *WebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	handleMigrateWebhook(w, r, h.config)
+}
+
+func InitRouter(config *config.Config) (router *http.ServeMux, err error) {
 	err = loadEnv(".env")
 	if err != nil {
 		return nil, fmt.Errorf("Error finding environment variables: %w", err)
@@ -33,9 +54,9 @@ func InitRouter() (router *http.ServeMux, err error) {
 
 	router = http.NewServeMux()
 
-	mode := os.Getenv("MIGRATE_MODE")
-	if mode == "webhook" || mode == "both" {
-		router.HandleFunc("/migrate-webhook", handleMigrateWebhook)
+	if config.MigrateMode == "webhook" || config.MigrateMode == "both" {
+		handler := NewWebhookHandler(config)
+		router.Handle("/migrate-webhook", handler)
 
 		router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)

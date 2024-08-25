@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"gitea-migrate/config"
 	"gitea-migrate/logic"
 )
 
@@ -20,7 +21,7 @@ type GithubWebhookPayload struct {
 
 var Poller *logic.GithubPoller
 
-func handleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
+func handleMigrateWebhook(w http.ResponseWriter, r *http.Request, config *config.Config) {
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("Error reading request body: %v", err)
@@ -35,9 +36,6 @@ func handleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Printf("Debug - Received webhook for repository: %s", webhookPayload.Repository.Name)
-	// log.Printf("Debug - Clone URL: %s", webhookPayload.Repository.CloneURL)
-
 	if webhookPayload.Repository.Name == "" || webhookPayload.Repository.CloneURL == "" {
 		log.Printf("Error: Invalid repository name or clone URL")
 		http.Error(w, "Invalid repository name or clone URL", http.StatusBadRequest)
@@ -50,7 +48,7 @@ func handleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = logic.CreateGiteaRepo(webhookPayload.Repository.Name, webhookPayload.Repository.CloneURL)
+	err = logic.CreateGiteaRepo(webhookPayload.Repository.Name, webhookPayload.Repository.CloneURL, config)
 	if err != nil {
 		log.Printf("Error creating Gitea mirror: %v", err)
 		http.Error(w, fmt.Sprintf("Error creating Gitea mirror: %v", err), http.StatusInternalServerError)

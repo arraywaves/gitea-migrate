@@ -9,6 +9,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"gitea-migrate/config"
 )
 
 type GithubRepo struct {
@@ -20,23 +22,25 @@ type GithubPoller struct {
 	mirroredRepos map[string]bool
 	mutex         sync.Mutex
 	stopChan      chan struct{}
+	doneChan      chan struct{}
 	interval      time.Duration
+	config        *config.Config
 }
 
-var PollingInterval = 60 * time.Minute
-
-func NewGithubPoller(interval time.Duration) *GithubPoller {
-	poller := &GithubPoller{
+func NewGithubPoller(interval time.Duration, config *config.Config) *GithubPoller {
+	return &GithubPoller{
 		mirroredRepos: make(map[string]bool),
 		stopChan:      make(chan struct{}),
+		doneChan:      make(chan struct{}),
 		interval:      interval,
+		config:        config,
 	}
-	poller.loadMirroredRepos()
-	return poller
 }
 
 func (p *GithubPoller) Start() {
+	p.loadMirroredRepos()
 	go func() {
+		defer close(p.doneChan)
 		p.checkForNewRepos()
 		ticker := time.NewTicker(p.interval)
 		defer ticker.Stop()
@@ -54,22 +58,19 @@ func (p *GithubPoller) Start() {
 
 func (p *GithubPoller) Stop() {
 	close(p.stopChan)
+	<-p.doneChan
 }
 
 func (p *GithubPoller) repoExistsInGitea(repoName string) bool {
-	giteaAPIURL := os.Getenv("GITEA_API_URL")
-	giteaUser := os.Getenv("GITEA_USER")
-	giteaToken := os.Getenv("GITEA_TOKEN")
+	GiteaURL := fmt.Sprintf("%s/repos/%s/%s", p.config.GiteaAPIURL, p.config.GiteaUser, repoName)
 
-	url := fmt.Sprintf("%s/repos/%s/%s", giteaAPIURL, giteaUser, repoName)
-
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", GiteaURL, nil)
 	if err != nil {
 		log.Printf("Error creating request to check repo in Gitea: %v", err)
 		return false
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("token %s", giteaToken))
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", p.config.GiteaToken))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -85,15 +86,10 @@ func (p *GithubPoller) repoExistsInGitea(repoName string) bool {
 func (p *GithubPoller) checkForNewRepos() {
 	log.Println("Checking for new repos...")
 
-	githubToken := os.Getenv("GITHUB_TOKEN")
-	if githubToken == "" {
-		log.Println("GITHUB_TOKEN is not set. Skipping check.")
-		return
-	}
-	url := "https://api.github.com/user/repos"
+	GithubURL := "https://api.github.com/user/repos"
 
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Authorization", "token "+githubToken)
+	req, _ := http.NewRequest("GET", GithubURL, nil)
+	req.Header.Set("Authorization", "token "+p.config.GithubToken)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -108,6 +104,7 @@ func (p *GithubPoller) checkForNewRepos() {
 	var repos []GithubRepo
 	json.Unmarshal(body, &repos)
 
+	// Improve: solution to nesting?
 	for _, repo := range repos {
 		p.mutex.Lock()
 		if !p.mirroredRepos[repo.Name] {
@@ -115,7 +112,7 @@ func (p *GithubPoller) checkForNewRepos() {
 				p.mirroredRepos[repo.Name] = true
 				log.Printf("Added existing Gitea mirror to list: %s", repo.Name)
 			} else {
-				err := CreateGiteaRepo(repo.Name, repo.CloneURL)
+				err := CreateGiteaRepo(repo.Name, repo.CloneURL, p.config)
 				if err != nil {
 					log.Printf("Error mirroring repo %s: %v", repo.Name, err)
 				} else {
