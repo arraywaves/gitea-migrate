@@ -21,49 +21,49 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, fmt.Errorf("error loading .env file: %w", err)
-	}
+	_ = godotenv.Load()
 
 	config := &Config{}
 
-	config.GiteaAPIURL = os.Getenv("GITEA_API_URL")
-	config.GiteaUser = os.Getenv("GITEA_USER")
-	config.GiteaToken = os.Getenv("GITEA_TOKEN")
-	config.GithubUser = os.Getenv("GITHUB_USER")
-	config.GithubToken = os.Getenv("GITHUB_TOKEN")
+	config.GiteaAPIURL = getEnv("GITEA_API_URL", "")
+	config.GiteaUser = getEnv("GITEA_USER", "")
+	config.GiteaToken = getEnv("GITEA_TOKEN", "")
+	config.GithubUser = getEnv("GITHUB_USER", "")
+	config.GithubToken = getEnv("GITHUB_TOKEN", "")
 
-	port, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
-		config.Port = 8080
-	} else {
-		config.Port = port
-	}
-
-	interval, err := strconv.Atoi(os.Getenv("POLLING_INTERVAL_MINUTES"))
-	if err != nil {
-		config.PollingInterval = 60
-	} else {
-		config.PollingInterval = interval
-	}
-
-	config.MigrateMode = os.Getenv("MIGRATE_MODE")
-	if config.MigrateMode == "" {
-		config.MigrateMode = "poll"
-	}
-
-	enableMirror, err := strconv.ParseBool(os.Getenv("ENABLE_MIRROR"))
-	if err != nil {
-		config.EnableMirror = true
-	} else {
-		config.EnableMirror = enableMirror
-	}
+	config.Port = getEnvAsInt("PORT", 8080)
+	config.PollingInterval = getEnvAsInt("POLLING_INTERVAL_MINUTES", 60)
+	config.MigrateMode = getEnv("MIGRATE_MODE", "poll")
+	config.EnableMirror = getEnvAsBool("ENABLE_MIRROR", true)
 
 	if err := config.validate(); err != nil {
 		return nil, err
 	}
 
 	return config, nil
+}
+
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvAsInt(key string, defaultValue int) int {
+	valueStr := getEnv(key, "")
+	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	valueStr := getEnv(key, "")
+	if value, err := strconv.ParseBool(valueStr); err == nil {
+		return value
+	}
+	return defaultValue
 }
 
 func (c *Config) validate() error {
