@@ -9,6 +9,7 @@ import (
 
 	"gitea-migrate/internal/config"
 	"gitea-migrate/internal/core"
+	"gitea-migrate/pkg/models"
 )
 
 type GithubWebhookPayload struct {
@@ -19,9 +20,23 @@ type GithubWebhookPayload struct {
 	} `json:"repository"`
 }
 
-var Poller *core.GithubPoller
+type Handler struct {
+	config        *config.Config
+	giteaService  core.GiteaService
+	githubService core.GitHubService
+	poller        core.Poller
+}
 
-func handleMigrateWebhook(w http.ResponseWriter, r *http.Request, config *config.Config) {
+func NewHandler(config *config.Config, giteaService core.GiteaService, githubService core.GitHubService, poller core.Poller) *Handler {
+	return &Handler{
+		config:        config,
+		giteaService:  giteaService,
+		githubService: githubService,
+		poller:        poller,
+	}
+}
+
+func (h *Handler) HandleMigrateWebhook(w http.ResponseWriter, r *http.Request) {
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("Error reading request body: %v", err)
@@ -48,17 +63,26 @@ func handleMigrateWebhook(w http.ResponseWriter, r *http.Request, config *config
 		return
 	}
 
-	err = core.CreateRepo(webhookPayload.Repository.Name, webhookPayload.Repository.CloneURL, config)
+	repo := &models.Repository{
+		Name:     webhookPayload.Repository.Name,
+		CloneURL: webhookPayload.Repository.CloneURL,
+		Private:  true, // Assuming all repos are private, adjust if needed
+	}
+
+	err = h.giteaService.CreateRepo(r.Context(), repo)
 	if err != nil {
 		log.Printf("Error creating Gitea mirror: %v", err)
 		http.Error(w, fmt.Sprintf("Error creating Gitea mirror: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	if Poller != nil {
-		Poller.AddMirroredRepo(webhookPayload.Repository.Name)
-	}
+	h.poller.AddMirroredRepo(repo.Name)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Repository mirrored successfully"))
+}
+
+func (h *Handler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }

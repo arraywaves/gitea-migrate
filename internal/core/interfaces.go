@@ -11,7 +11,7 @@ type GiteaService interface {
 }
 
 type GitHubService interface {
-	fetchRepos(context context.Context) ([]*models.Repository, error)
+	FetchRepos(context context.Context) ([]*models.Repository, error)
 }
 
 type Poller interface {

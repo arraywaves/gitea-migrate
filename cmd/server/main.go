@@ -1,75 +1,52 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"gitea-migrate/internal/api"
 	"gitea-migrate/internal/config"
-	"gitea-migrate/internal/core"
 )
 
 func main() {
 	config, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Error loading configuration: %v", err)
-		return
 	}
 
-	router, err := api.InitRouter(config)
+	router, err := api.NewRouter(config)
 	if err != nil {
-		log.Fatalf("Error initialising router: %v", err)
+		log.Fatalf("Error creating router: %v", err)
 	}
 
-	if config.MigrateMode == "webhook" || config.MigrateMode == "both" {
-		log.Println("Webhook endpoint active at /migrate-webhook")
-	}
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	var poller *core.GithubPoller
-	if config.MigrateMode == "poll" || config.MigrateMode == "both" {
-		pollingInterval := time.Duration(config.PollingInterval) * time.Minute
-		poller = core.NewGithubPoller(pollingInterval, config)
-		log.Printf("Initial mirrored repos count: %d", poller.GetMirroredReposCount())
-		poller.Start()
-	}
-
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", config.Port),
-		Handler: router,
-	}
+	// Create an error channel to capture server errors
+	serverErrors := make(chan error, 1)
 
 	go func() {
-		log.Printf("Starting server on :%d", config.Port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server error: %v", err)
+		log.Printf("Server is running on port %d", config.Port)
+		err := router.Start()
+		if err != nil && err != http.ErrServerClosed {
+			serverErrors <- err
 		}
 	}()
 
-	<-waitForInterrupt()
-	log.Println("Shutting down server...")
-
-	context, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(context); err != nil {
-		log.Printf("Server forced to shutdown: %v", err)
+	select {
+	case <-stop:
+		log.Println("Stopping goroutines, shutting down server...")
+	case err := <-serverErrors:
+		log.Printf("Server error: %v", err)
 	}
 
-	if poller != nil {
-		poller.Stop()
+	// Perform any cleanup or shutdown operations here
+	if err := router.Stop(); err != nil {
+		log.Printf("Error stopping server: %v", err)
 	}
 
-	log.Println("Server stopped.")
-}
-
-func waitForInterrupt() chan os.Signal {
-	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
-	return exit
+	log.Println("Server gracefully stopped.")
 }
