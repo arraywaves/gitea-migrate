@@ -146,7 +146,6 @@ gitea-migrate/
 - Implement test coverage.
 - Enable more migration options.
 - Implement origin restriction (CSRF) for security in webhook mode.
-- Expand to other repositories.
 
 ## License
 
