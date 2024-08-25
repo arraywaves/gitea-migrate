@@ -21,6 +21,9 @@ FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
+# Install curl for health checks
+RUN apk --no-cache add curl
+
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
