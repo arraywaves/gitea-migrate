@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"gitea-migrate/api"
-	"gitea-migrate/config"
-	"gitea-migrate/logic"
+	"gitea-migrate/internal/api"
+	"gitea-migrate/internal/config"
+	"gitea-migrate/internal/core"
 )
 
 func main() {
@@ -31,10 +31,10 @@ func main() {
 		log.Println("Webhook endpoint active at /migrate-webhook")
 	}
 
-	var poller *logic.GithubPoller
+	var poller *core.GithubPoller
 	if config.MigrateMode == "poll" || config.MigrateMode == "both" {
 		pollingInterval := time.Duration(config.PollingInterval) * time.Minute
-		poller = logic.NewGithubPoller(pollingInterval, config)
+		poller = core.NewGithubPoller(pollingInterval, config)
 		log.Printf("Initial mirrored repos count: %d", poller.GetMirroredReposCount())
 		poller.Start()
 	}

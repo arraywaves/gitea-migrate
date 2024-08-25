@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"gitea-migrate/config"
-	"gitea-migrate/logic"
+	"gitea-migrate/internal/config"
+	"gitea-migrate/internal/core"
 
 	"github.com/joho/godotenv"
 )
@@ -31,14 +31,14 @@ func loadEnv(envFile string) error {
 
 type WebhookHandler struct {
 	config *config.Config
-	poller *logic.GithubPoller
+	poller *core.GithubPoller
 }
 
 func NewWebhookHandler(config *config.Config) *WebhookHandler {
 	interval := config.PollingInterval
 	return &WebhookHandler{
 		config: config,
-		poller: logic.NewGithubPoller(time.Duration(interval), config),
+		poller: core.NewGithubPoller(time.Duration(interval), config),
 	}
 }
 

@@ -1,4 +1,4 @@
-package logic
+package core
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"gitea-migrate/config"
+	"gitea-migrate/internal/config"
 )
 
 type GithubRepo struct {

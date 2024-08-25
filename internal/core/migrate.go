@@ -1,4 +1,4 @@
-package logic
+package core
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"gitea-migrate/config"
+	"gitea-migrate/internal/config"
 )
 
 func CreateGiteaRepo(repoName, cloneURL string, config *config.Config) error {

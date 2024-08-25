@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	"gitea-migrate/config"
-	"gitea-migrate/logic"
+	"gitea-migrate/internal/config"
+	"gitea-migrate/internal/core"
 )
 
 type GithubWebhookPayload struct {
@@ -19,7 +19,7 @@ type GithubWebhookPayload struct {
 	} `json:"repository"`
 }
 
-var Poller *logic.GithubPoller
+var Poller *core.GithubPoller
 
 func handleMigrateWebhook(w http.ResponseWriter, r *http.Request, config *config.Config) {
 	payload, err := io.ReadAll(r.Body)
@@ -48,7 +48,7 @@ func handleMigrateWebhook(w http.ResponseWriter, r *http.Request, config *config
 		return
 	}
 
-	err = logic.CreateGiteaRepo(webhookPayload.Repository.Name, webhookPayload.Repository.CloneURL, config)
+	err = core.CreateGiteaRepo(webhookPayload.Repository.Name, webhookPayload.Repository.CloneURL, config)
 	if err != nil {
 		log.Printf("Error creating Gitea mirror: %v", err)
 		http.Error(w, fmt.Sprintf("Error creating Gitea mirror: %v", err), http.StatusInternalServerError)
