@@ -78,7 +78,7 @@ Gitea Migrate is a simple Go server application that automatically mirrors GitHu
 
 ## Usage
 
-1. Host **gitea-migrate** on your server (preferably on the same domain as Gitea).
+1. Host **gitea-migrate** on your server.
 
 2. When the server starts, Gitea Migrate will automatically scan and migrate your repos to Gitea.
 
